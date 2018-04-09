@@ -4,10 +4,9 @@ let cities = require('./city.list');
 
 // const CIRCLE_RADIUS = 15000; // meterss
 
-// http://samples.openweathermap.org/data/2.5/forecast/daily?id=524901&lang=zh_cn&appid=c1ad69b1ee7c383058585d0386a03992
 class LocationService {
 
-    _cityMap;
+    // _cityMap;
 
     /**
      *
