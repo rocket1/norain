@@ -5,7 +5,8 @@ const LocationService = require('../services/location-service');
 router.get('/', (req, res, next) => {
     const id = req.query.id;
     const loc = LocationService.getLocationById(id);
-    res.send(loc);
+    const locs = LocationService.getLocationsWithRadius(loc.coord, 15000);
+    res.send(locs);
 });
 
 module.exports = router;
