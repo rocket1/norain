@@ -45,46 +45,36 @@ class WeatherService {
 
     /**
      *
+     * @param result
+     * @returns {boolean}
+     * @private
+     */
+    _isSunny(result) {
+        // see: https://openweathermap.org/weather-conditions
+        const weather = result.weather[0];
+        const weatherId = weather.id;
+        return weatherId >= 800 && weatherId < 900;
+    }
+
+    /**
+     *
      * @param locs
      * @returns {PromiseLike<T> | Promise<T>}
      */
     getSunnyLocations(locs) {
         return this._getWeatherPromiseForLocations(locs).then(results => {
             results = results
-                .map(resultRaw => {
-                    return JSON.parse(resultRaw);
-                })
-                .filter(result => {
-                    const excludeTypes = ['rain', 'snow'];
-                    let shouldInclude = true;
-                    for (let i = 0, len = excludeTypes.length; i < len; ++i) {
-                        if (excludeTypes[i] in result) {
-                            shouldInclude = false;
-                            break;
-                        }
-                    }
-                    return shouldInclude;
+                .map(JSON.parse)
+                .filter(this._isSunny)
+                .map(result => {
+                    result['coord'] = {
+                        latitude: result.coord.lat,
+                        longitude: result.coord.lon,
+                    };
+                    return result;
                 });
 
-            results.sort((a, b) => {
-
-                const nameA = a.name.toUpperCase(); // ignore upper and lowercase
-                const nameB = b.name.toUpperCase(); // ignore upper and lowercase
-
-                if (nameA < nameB) {
-                    return -1;
-                }
-
-                if (nameA > nameB) {
-                    return 1;
-                }
-
-                // names must be equal
-                return 0;
-            });
-
             return results;
-
         });
     }
 }

@@ -2,21 +2,62 @@ const express = require('express');
 const router = express.Router();
 const LocationService = require('../services/location-service');
 const WeatherService = require('../services/weather-service');
+const cors = require('cors');
 
-router.get('/', (req, res, next) => {
+/**
+ *
+ * @param query
+ * @returns {*}
+ */
+function getLocationPromiseFromQuery(query) {
 
-    const id = req.query.id;
-    const radius = 'radius' in req.query ? req.query.radius * 1000 : 15000;
-    const loc = LocationService.getLocationById(id);
-    const locs = LocationService.getLocationsWithRadius(loc.coord, radius);
+    if ('id' in query) {
+        return LocationService.getLocationById(query.id);
+    }
+    else if ('term' in query) {
+        return LocationService.getLocationByTerm(query.term);
+    }
 
-    const weather = WeatherService.getSunnyLocations(locs).then(sunnyLocs => {
+    throw new Error('Insufficient query parameters.');
+}
 
-        if ('pretty' in req.query) {
-            sunnyLocs = sunnyLocs.map(loc => `<b>${loc.name}</b> (${loc.weather[0].main})`).join('<br>');
-        }
+router.get('/', cors(), (req, res, next) => {
 
-        res.send(sunnyLocs);
+    const defaultRadiusInMeters = 15000;
+    const radius = 'radius' in req.query ? req.query.radius * 1000 : defaultRadiusInMeters;
+
+    getLocationPromiseFromQuery(req.query).then(loc => {
+
+        const locs = LocationService.getLocationsWithRadius(loc.coord, radius);
+        const weather = WeatherService.getSunnyLocations(locs).then(sunnyLocs => {
+
+            sunnyLocs.sort((a, b) => {
+                const nameA = a.name.toUpperCase();
+                const nameB = b.name.toUpperCase();
+                if (nameA < nameB) {
+                    return -1;
+                }
+                if (nameA > nameB) {
+                    return 1;
+                }
+                return 0;
+            });
+
+            if ('pretty' in req.query) {
+                sunnyLocs = sunnyLocs.map(loc => `<b>${loc.name}</b>`).join('<br>');
+                res.send(sunnyLocs);
+            }
+            else {
+                res.send({
+                    location: loc,
+                    nearbyLocations: sunnyLocs
+                });
+            }
+        });
+    }).catch(reason => {
+        res.send({
+            error: reason
+        });
     });
 
 });
