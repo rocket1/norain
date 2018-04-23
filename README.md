@@ -1,5 +1,19 @@
 No Rain (norain.co)
 
+A simple NodeJS/Express API that will return locations of sunny cities within some radius of a location.
+
+After finding cities (pop >  15,000) around a particular location, it uses the Open Weather free web service to get weather data.
+
+
+
+
+
+
+
+-------------------------------
+
+EVERYTHING BELOW IS OLD OLD OLD but hanging on to it in case I want to revisit a command line interface.
+
 A utility for finding cities nearby that have no rain in the forecast.
 
 Options (may) include:
